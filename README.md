@@ -32,6 +32,7 @@ The prototype uses the following hardware:
 | USB camera | Provides the camera stream used by VIO and the live video feed |
 | Lidar | Supplies altitude/range measurements for height control and landing detection |
 | Optical flow sensor | Provides motion information for position holding and stabilization without GPS |
+| Mission Planner ground station | Provides Pixhawk telemetry, configuration, parameter monitoring, calibration, and manual mission supervision |
 
 ## Hardware connections
 
@@ -39,6 +40,7 @@ The prototype uses the following hardware:
 | --- | --- | --- |
 | Laptop GCS to Jetson Nano | Wi-Fi network, TCP port `5005` | Start, kill, disarm, ping, state messages, and flight logs |
 | Jetson Nano to Pixhawk | UART, using MAVLink through MAVROS | Vehicle state, sensor data, flight modes, arming, and setpoints |
+| Pixhawk to Mission Planner | Telemetry radio link using MAVLink telemetry | Sends Pixhawk telemetry to Mission Planner for configuration, monitoring, calibration, and operator supervision |
 | Lidar to Jetson Nano | USB-to-TTL converter | Sends lidar altitude/range data to the companion computer |
 | USB camera to Jetson Nano | USB | Captures frames for VIO and video processing |
 | Optical flow sensor to Pixhawk | I2C | Supplies optical-flow motion data to the flight controller |
@@ -46,6 +48,8 @@ The prototype uses the following hardware:
 | Battery/PDB to ESCs and electronics | Power wiring | Distributes regulated and motor power; follow the hardware power budget when assembling |
 
 The Pixhawk remains responsible for the fast low-level attitude and motor-control loop. The Jetson provides higher-level autonomy, perception, telemetry supervision, and the network interface to the GCS.
+
+Mission Planner connects to the Pixhawk through the telemetry link. It is used for Pixhawk setup, parameter configuration, sensor calibration, telemetry monitoring, and manual supervision. This telemetry connection is separate from the Wi-Fi connection used by the custom laptop GCS to communicate with the Jetson, while both interfaces can observe and supervise the vehicle through their respective MAVLink paths.
 
 ## Communication protocols and interfaces
 
@@ -63,6 +67,10 @@ The Jetson returns acknowledgements, state updates, log messages, and connection
 ### Jetson to Pixhawk
 
 The Jetson uses a UART serial link to communicate with the Pixhawk through MAVLink and MAVROS. ROS nodes publish and subscribe to MAVROS topics and call MAVROS services for vehicle state, sensor telemetry, arming, mode changes, and local-position setpoints. The emergency system can command `AUTO.LAND` when a critical fault is detected.
+
+### Pixhawk to Mission Planner telemetry
+
+The Pixhawk is connected to Mission Planner through a telemetry radio link. MAVLink telemetry carries vehicle status, attitude, position estimates, battery information, flight mode, parameters, and diagnostic data to Mission Planner. Mission Planner can also send configuration, calibration, and operator commands back to the Pixhawk through the same telemetry connection. The telemetry link provides a separate ground-station path for setup and supervision during GPS-denied testing.
 
 ### Onboard sensor interfaces
 
